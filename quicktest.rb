@@ -1,4 +1,36 @@
-current_dir = "./" #change of you want the .sh file somewhere else
+=begin 
+this programs takes in a directory that contains test files for a program
+ and makes an shell script executable that runs all test files as params to your program
+
+
+example 
+
+ruby quicktest.rb ./c_file path_to_tests file_extension
+
+
+so:
+
+	ruby quicktest.rb ./lem-in path_to_tests .map
+
+will result in 3 step process
+
+1.	creates testing.sh
+2. inside looks like:
+		 ./lem-in path_to_tests/test1.map
+		 ./lem-in path_to_tests/test2.map
+		 ./lem-in path_to_tests/test3.map
+		 ./lem-in path_to_tests/test4.map
+		 ./lem-in path_to_tests/test5.map
+
+3. run with: 
+	#sh testing.sh
+
+warning may be more complicated than its worth... only time will tell
+
+
+=end
+
+current_dir = "./" #change if you want the .sh file somewhere else
 test_file_name = "testing.sh"
 
 def save_file(test_file_path, file_extension)
