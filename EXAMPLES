@@ -1,0 +1,64 @@
+ This programs takes in a directory that contains test files for a program
+ and makes an shell script executable that runs all test files as params to your program with and without valgrind.
+
+-----------***--------------***-------------***-----------***------------
+
+Without valgrind:
+	ruby quicktest.rb ./c_file path_to_tests file_extension
+
+so:
+	ex01: using file extension
+		ruby quicktest.rb ./lem-in path_to_tests .map
+
+	ex02: to do all maps inside of directory
+		ruby quicktest.rb ./lem-in path_to_tests \*
+
+	ex03: use all files in directory with an "a"
+		ruby quicktest.rb ./lem-in path_to_tests a
+Result:
+
+1.	creates testing.sh
+2. inside looks like:
+		 ./lem-in path_to_tests/test1.map
+		 ./lem-in path_to_tests/test2.map
+		 ./lem-in path_to_tests/test3.map
+		 ./lem-in path_to_tests/test4.map
+		 ./lem-in path_to_tests/test5.map
+
+3. run with: 
+	#sh testing.sh
+warning may be more complicated than its worth... only time will tell ;)
+
+
+-----------***--------------***-------------***-----------***------------
+
+
+WITH VALGRIND:
+	ruby quicktest.rb ./c_file path_to_tests file_extension 1
+
+Defualt, no leakcheck = 0
+Low leak check = 1
+High leak check = 2
+
+A fourth parameter controls level of leakchecking with valgrind
+so:
+	ex01: using file extension
+		ruby quicktest.rb ./lem-in path_to_tests .map 1
+
+	ex02: to do all maps inside of directory 
+		ruby quicktest.rb ./lem-in path_to_tests \* 2
+
+	ex03: use all files in directory with an "a"
+		ruby quicktest.rb ./lem-in path_to_tests a 1
+
+ex01 Result:
+
+1.	creates testing.sh
+2. inside looks like:
+		valgrind --tool=memcheck --leak-check=yes -v ./lem-in path_to_tests/test1.map
+		valgrind --tool=memcheck --leak-check=yes -v ./lem-in path_to_tests/test2.map
+		valgrind --tool=memcheck --leak-check=yes -v ./lem-in path_to_tests/test3.map
+		valgrind --tool=memcheck --leak-check=yes -v ./lem-in path_to_tests/test4.map
+		valgrind --tool=memcheck --leak-check=yes -v ./lem-in path_to_tests/test5.map
+3. run with: 
+	#sh testing.sh

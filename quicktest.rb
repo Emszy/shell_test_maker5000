@@ -1,35 +1,3 @@
-=begin 
-this programs takes in a directory that contains test files for a program
- and makes an shell script executable that runs all test files as params to your program
-
-
-example 
-
-ruby quicktest.rb ./c_file path_to_tests file_extension
-
-
-so:
-
-	ruby quicktest.rb ./lem-in path_to_tests .map
-
-will result in 3 step process
-
-1.	creates testing.sh
-2. inside looks like:
-		 ./lem-in path_to_tests/test1.map
-		 ./lem-in path_to_tests/test2.map
-		 ./lem-in path_to_tests/test3.map
-		 ./lem-in path_to_tests/test4.map
-		 ./lem-in path_to_tests/test5.map
-
-3. run with: 
-	#sh testing.sh
-
-warning may be more complicated than its worth... only time will tell
-
-
-=end
-
 current_dir = "./" #change if you want the .sh file somewhere else
 test_file_name = "testing.sh"
 
@@ -37,8 +5,11 @@ def save_file(test_file_path, file_extension)
 	x = 0
 	dir_names = []
 	Dir.new(test_file_path).each { |file|
-			if file.include? file_extension
-				dir_names[x] = file
+			if file.include? file_extension or file_extension == "*"
+				if file[0] == '.'
+					next
+				end
+					dir_names[x] = file
 				x += 1
 			end
 		}
@@ -47,13 +18,13 @@ end
 
 def print_dir_names(dir_names)
 	x = 0
-		while x < dir_names.length
-			puts dir_names[x]
-			x += 1
-		end
+	while x < dir_names.length
+		puts dir_names[x]
+		x += 1
+	end
 end
 
-def put_to_file(dir_names, current_dir, test_file_name, executable, test_file_path)
+def put_to_file(dir_names, current_dir, test_file_name, executable, test_file_path, valgrind_bool)
 	File.open("#{current_dir}#{test_file_name}",  'w')\
 	{ \
 		|file| 
@@ -63,12 +34,18 @@ def put_to_file(dir_names, current_dir, test_file_name, executable, test_file_pa
 			x = 0
 			while x < dir_names.length
 				file.write("echo #{dir_names[x]}\n")
-				if dir_names[x].include? "err"
+				if dir_names[x].include? "err" or dir_names[x].include? "bad"
 					file.write("echo ${RED}\n")
 				else
 					file.write("echo ${GREEN}\n")
 				end
-				file.write("#{executable} #{test_file_path}/#{dir_names[x]}\n")
+				if valgrind_bool.to_i == 1
+					file.write("valgrind --tool=memcheck --leak-check=yes -v #{executable} #{test_file_path}/#{dir_names[x]}\n")
+				elsif valgrind_bool.to_i >= 2
+					file.write("valgrind --tool=memcheck --leak-check=yes --leak-check=full --show-leak-kinds=all-v #{executable} #{test_file_path}/#{dir_names[x]}\n")	
+				else
+					file.write("#{executable} #{test_file_path}/#{dir_names[x]}\n")
+				end
 				file.write("echo ${BLACK}\n")
 			x += 1
 		end			
@@ -76,14 +53,21 @@ def put_to_file(dir_names, current_dir, test_file_name, executable, test_file_pa
 end
 
 def start(current_dir, test_file_name)
-	if ARGV.length == 3
+	valgrind_bool = 0
+	arg_len = ARGV.length
+	if arg_len == 4
+		valgrind_bool = ARGV[3]
+		arg_len -= 1
+	end
+	if arg_len == 3
 		dir_names = []
 		executable = ARGV[0]
 		test_file_path = ARGV[1]
 		file_extension = ARGV[2]
+		p file_extension
 		dir_names = save_file(test_file_path, file_extension)		
 		print_dir_names(dir_names)
-		put_to_file(dir_names, current_dir, test_file_name, executable, test_file_path)
+		put_to_file(dir_names, current_dir, test_file_name, executable, test_file_path, valgrind_bool)
 	else
 		puts "USAGE:"
 		puts "\truby quicktest.rb executable path/to/files .test_file_type"
